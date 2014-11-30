@@ -52,12 +52,24 @@
     (write-run-service user app-path service-path jar-filename)
     (write-run-log user app-path service-path)))
 
+(defn construct-path [project type]
+  (let [path (case type
+               :app (:app-root (:runit project))
+               :service (:service-root (:runit project)))]
+    (str/join "/" [(:target-path project)
+                 path
+                 (or (:group project) "")
+                 (:name project)])))
+
 (defn runit
   "Provides integration with runit, a UNIX init scheme with service supervision."
   [project & args]
-  (clojure.pprint/pprint project)
-  (let [app-path (str/join "/" [(:app-root (:runit project)) (:group project) (:name project)])
-        service-path (str/join "/" [(:service-root (:runit project)) (:group project) (:name project)])
+  ;(clojure.pprint/pprint project)
+  (when-not (:runit project)
+    (leiningen.core.main/warn "Runit configuration map not found (profile.clj/project.clj)"))
+  (let [app-path (construct-path project :app) 
+        service-path (construct-path project :service)
         jar-filename (str/join "-" [(:name project) (:version project) "standalone.jar"])]
     (write-app app-path (:env project))
-    (write-service app-path service-path jar-filename)))
+    (write-service app-path service-path jar-filename)
+    (leiningen.core.main/info (format "All done. You can now run: sudo cp -R %s %s" (str (:target-path project) (:service-root (:runit project))) (:service-root (:runit project))))))
