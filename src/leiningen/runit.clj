@@ -9,6 +9,13 @@
       (.toUpperCase)
       (str/replace "-" "_")))
 
+(defn write-executable [lines path]
+  (io/make-parents path)
+    (with-open [wrtr (io/writer path)]
+      (doseq [line lines]
+        (.write wrtr (str line "\n"))))
+    (fs/chmod "+x" path))
+
 (defn write-env [env path]
   (doseq [[key value] env] 
     (let [filename (sanitize key)
@@ -30,26 +37,18 @@
                "exec 2>&1"
                (str "exec chpst -u " user " -e $BASE_DIR/env java -jar -server $BASE_DIR/$JAR")]
         path (str service-path "/run")]
-    (io/make-parents path)
-    (with-open [wrtr (io/writer path)]
-      (doseq [line lines]
-        (.write wrtr (str line "\n"))))
-    (fs/chmod "+x" path)))
+    (write-executable lines path)))
 
 (defn write-run-log [user app-path service-path]
   (let [lines ["#!/bin/sh -e"
                (str "BASE_DIR=" app-path)
                (str "exec chpst -u " user " svlogd -tt $BASE_DIR/logs")]
         path (str service-path "/log/run")]
-    (io/make-parents path)
-    (with-open [wrtr (io/writer path)]
-      (doseq [line lines]
-        (.write wrtr (str line "\n"))))
-    (fs/chmod "+x" path)))
+    (write-executable lines path)))
 
-(defn write-service [app-path service-path jar-filename]
+(defn write-service [app-path service-path jar-name]
   (let [user (System/getProperty "user.name")]
-    (write-run-service user app-path service-path jar-filename)
+    (write-run-service user app-path service-path jar-name)
     (write-run-log user app-path service-path)))
 
 (defn construct-path [project type]
@@ -61,15 +60,33 @@
                  (or (:group project) "")
                  (:name project)])))
 
+(defn write-setup [project jar-name]
+  (let [user (System/getProperty "user.name")
+        app-path (str/join "/" [(:app-root (:runit project))
+                                (or (:group project) "")
+                                (:name project)])
+        service-path (str/join "/" [(:service-root (:runit project))
+                                (or (:group project) "")
+                                (:name project)])
+        setup-path (str (:target-path project) "/setup.sh")
+        lines ["#!/bin/sh -e"
+               (format "sudo mkdir -p %s" app-path)
+               (format "chown %s:%s %s"  user user app-path)
+               (format "cp %s %s" jar-name app-path)
+               (format "sudo cp -R %s %s" (str (:target-path project) (:service-root (:runit project))) (:service-root (:runit project)))
+               (format "ln -s %s %s" service-path (str "/etc/service/" (or (:group project) "") "/" (:name project)))]]
+    (write-executable lines setup-path)))
+
 (defn runit
   "Provides integration with runit, a UNIX init scheme with service supervision."
   [project & args]
   ;(clojure.pprint/pprint project)
   (when-not (:runit project)
-    (leiningen.core.main/warn "Runit configuration map not found (profile.clj/project.clj)"))
+    (leiningen.core.main/warn "Runit configuration map not found. Please refer to README for details."))
   (let [app-path (construct-path project :app) 
         service-path (construct-path project :service)
-        jar-filename (str/join "-" [(:name project) (:version project) "standalone.jar"])]
+        jar-name (str/join "-" [(:name project) (:version project) "standalone.jar"])]
     (write-app app-path (:env project))
-    (write-service app-path service-path jar-filename)
-    (leiningen.core.main/info (format "All done. You can now run: sudo cp -R %s %s" (str (:target-path project) (:service-root (:runit project))) (:service-root (:runit project))))))
+    (write-service app-path service-path jar-name)
+    (write-setup project jar-name)
+    (leiningen.core.main/info "All done. You can now run setup.sh in target directory.")))
