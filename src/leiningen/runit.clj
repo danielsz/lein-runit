@@ -51,42 +51,45 @@
     (write-run-service user app-path service-path jar-name)
     (write-run-log user app-path service-path)))
 
-(defn construct-path [project type]
-  (let [path (case type
-               :app (:app-root (:runit project))
-               :service (:service-root (:runit project)))]
-    (str/join "/" [(:target-path project)
-                 path
-                 (or (:group project) "")
-                 (:name project)])))
+(defn assemble-path [els]
+  (str/join "/" els))
+
+(defn compute-paths [project]
+  (let [app [(:app-root (:runit project)) (or (:group project) "") (:name project)]
+        service-name (if (:group project)
+                       (str (:group project) "-" (:name project))
+                       (:name project))
+        service [(:service-root (:runit project)) service-name]
+        runit ["/etc/service" service-name]
+        app-temp (conj (seq app) (:target-path project))
+        service-temp (conj (seq service) (:target-path project))]
+    {:app (assemble-path app)
+     :service (assemble-path service)
+     :app-temp (assemble-path app-temp)
+     :service-temp (assemble-path service-temp)
+     :runit (assemble-path runit)}))
+
+(def paths (memoize compute-paths))
 
 (defn write-setup [project jar-name]
   (let [user (System/getProperty "user.name")
-        app-path (str/join "/" [(:app-root (:runit project))
-                                (or (:group project) "")
-                                (:name project)])
-        service-path (str/join "/" [(:service-root (:runit project))
-                                (or (:group project) "")
-                                (:name project)])
-        setup-path (str (:target-path project) "/setup.sh")
+        paths (paths project)
         lines ["#!/bin/sh -e"
-               (format "sudo mkdir -p %s" app-path)
-               (format "chown %s:%s %s"  user user app-path)
-               (format "cp %s %s" jar-name app-path)
+               (format "sudo mkdir -p %s" (:app paths))
+               (format "sudo chown %s:%s %s"  user user (:app paths))
+               (format "cp %s %s" jar-name (:app paths))
                (format "sudo cp -R %s %s" (str (:target-path project) (:service-root (:runit project))) (:service-root (:runit project)))
-               (format "ln -s %s %s" service-path (str "/etc/service/" (or (:group project) "") "/" (:name project)))]]
-    (write-executable lines setup-path)))
+               (format "sudo ln -s %s %s" (:service paths) (:runit paths))]]
+    (write-executable lines (str (:target-path project) "/setup.sh"))))
 
 (defn runit
   "Provides integration with runit, a UNIX init scheme with service supervision."
   [project & args]
-  ;(clojure.pprint/pprint project)
   (when-not (:runit project)
     (leiningen.core.main/warn "Runit configuration map not found. Please refer to README for details."))
-  (let [app-path (construct-path project :app) 
-        service-path (construct-path project :service)
+  (let [paths (paths project)
         jar-name (str/join "-" [(:name project) (:version project) "standalone.jar"])]
-    (write-app app-path (:env project))
-    (write-service app-path service-path jar-name)
+    (write-app (:app-temp paths) (:env project))
+    (write-service (:app-temp paths) (:service-temp paths) jar-name)
     (write-setup project jar-name)
     (leiningen.core.main/info "All done. You can now run setup.sh in target directory.")))

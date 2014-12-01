@@ -1,4 +1,4 @@
-(defproject org.danielsz/runit "0.1.0-SNAPSHOT"
+(defproject org.danielsz/lein-runit "0.1.0-SNAPSHOT"
   :description "Leiningen plugin providing runit integration, a UNIX init scheme with service supervision."
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
