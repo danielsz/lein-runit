@@ -52,7 +52,8 @@
     (write-run-log user app-path service-path)))
 
 (defn assemble-path [els]
-  (str/join "/" els))
+  (-> (str/join "/" els)
+      (clojure.string/replace #"(?<!http:)//" "/")))
 
 (defn compute-paths [project]
   (let [app [(:app-root (:runit project)) (or (:group project) "") (:name project)]
