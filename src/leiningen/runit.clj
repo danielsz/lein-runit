@@ -61,14 +61,13 @@
                        (str (:group project) "-" (:name project))
                        (:name project))
         service [(:service-root (:runit project)) service-name]
-        runit ["/etc/service" service-name]
         app-temp (conj (seq app) (:target-path project))
         service-temp (conj (seq service) (:target-path project))]
     {:app (assemble-path app)
      :service (assemble-path service)
      :app-temp (assemble-path app-temp)
      :service-temp (assemble-path service-temp)
-     :runit (assemble-path runit)}))
+     :runit "/etc/service"}))
 
 (def paths (memoize compute-paths))
 
