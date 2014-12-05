@@ -78,8 +78,8 @@
                (format "sudo mkdir -p %s" (:app paths))
                (format "sudo chown %s:%s %s"  user user (:app paths))
                (format "cp %s %s" jar-name (:app paths))
-               (format "cp -R %s %s" (str (:target-path project) (:app-root (:runit project))) (:app-root (:runit project)))
-               (format "sudo cp -R %s %s" (str (:target-path project) (:service-root (:runit project))) (:service-root (:runit project)))
+               (format "cp -R %s /" (str (:target-path project) (:app-root (:runit project))))
+               (format "sudo cp -R %s /etc" (str (:target-path project) (:service-root (:runit project))))
                (format "sudo ln -s %s %s" (:service paths) (:runit paths))]]
     (write-executable lines (str (:target-path project) "/commit.sh"))))
 
@@ -91,6 +91,6 @@
   (let [paths (paths project)
         jar-name (str/join "-" [(:name project) (:version project) "standalone.jar"])]
     (write-app (:app-temp paths) (:env project))
-    (write-service (:app-temp paths) (:service-temp paths) jar-name)
+    (write-service (:app paths) (:service-temp paths) jar-name)
     (write-commit project jar-name)
     (leiningen.core.main/info "All done. You can now run commit.sh in target directory.")))
