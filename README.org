@@ -1,11 +1,11 @@
 * lein-runit
 
 A Leiningen plugin that makes easy to deploy production code with the [[http://smarden.org/runit/][runit]] supervisor.
-If you’ve never used runit before, you may want to refer to @kchard’s excellent [[http://kchard.github.io/runit-quickstart/][quickstart]]. Once you understand how it works, you may want to come back and use lein-runit to automate the workflow.
+If you’ve never used runit before, you may want to refer to Kevin Chard’s excellent [[http://kchard.github.io/runit-quickstart/][quickstart]]. Once you understand how it works, you may want to come back and use lein-runit to automate the workflow.
 
 ** Installation
 
-Put the following into the *:plugins* vector in either *project.clj* or *~/.lein/profile.clj*.
+Put the following into the *:plugins* vector in either *project.clj* or *~/.lein/profiles.clj*.
 
 #+BEGIN_SRC clojure
 [org.danielsz/lein-runit "0.1.0-SNAPSHOT"]
@@ -26,7 +26,7 @@ Since this plugin makes sense for production scenarii, this is most likely what 
 $ lein with-profile production runit
 #+END_SRC
 
-Then cd to the target directory, and a shell script will move everything into place with the right permissions
+Finally, change to the target directory, and run the shell script that will move everything into place with the right permissions:
 
 #+BEGIN_SRC sh
 $ cd target
