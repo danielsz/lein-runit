@@ -1,7 +1,7 @@
 * lein-runit
 
 A Leiningen plugin that makes easy to deploy production code with the [[http://smarden.org/runit/][runit]] supervisor.
-If you’ve never used runit before, you may want to refer to Kevin Chard’s excellent [[http://kchard.github.io/runit-quickstart/][quickstart]]. Once you understand how things work, you may want to come back and use *lein-runit* to automate the workflow for Clojure projects.
+If you’ve never used runit before, you may want to refer to Kevin Chard’s excellent [[http://kchard.github.io/runit-quickstart/][quickstart]]. I have curated some more links in a blog [[http://danielsz.github.io/2014/12/06/lein-runit/][post]]. Once you understand how things work, you may want to come back and use *lein-runit* to automate the workflow for Clojure projects.
 
 ** Installation
 
