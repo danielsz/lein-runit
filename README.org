@@ -40,7 +40,7 @@ The assumptions made by *lein-runit* are that:
 - You are using the [[https://github.com/weavejester/environ][environ]] library to set the environment variables for your project.
 - You are deploying an uberjar. (*lein with-profile production uberjar*)
 
-## License
+** License
 
 Copyright © 2014 Daniel Szmulewicz
 
