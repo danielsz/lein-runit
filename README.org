@@ -1,7 +1,7 @@
 * lein-runit
 
 A Leiningen plugin that makes easy to deploy production code with the [[http://smarden.org/runit/][runit]] supervisor.
-If you’ve never used runit before, you may want to refer to Kevin Chard’s excellent [[http://kchard.github.io/runit-quickstart/][quickstart]]. Once you understand how it works, you may want to come back and use lein-runit to automate the workflow.
+If you’ve never used runit before, you may want to refer to Kevin Chard’s excellent [[http://kchard.github.io/runit-quickstart/][quickstart]]. Once you understand how it works, you may want to come back and use *lein-runit* to automate the workflow for Clojure projects.
 
 ** Installation
 
@@ -32,6 +32,13 @@ Finally, change to the target directory, and run the shell script that will move
 $ cd target
 $ ./commit.sh
 #+END_SRC
+
+*** Assumptions
+
+The assumptions made by *lein-runit* are that:
+
+- You are using the [[https://github.com/weavejester/environ][environ]] library to set the environment variables for your project.
+- You are deploying an uberjar. (*lein with-profile production uberjar*)
 
 ## License
 
