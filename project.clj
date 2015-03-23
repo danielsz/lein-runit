@@ -3,5 +3,6 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[me.raynes/fs "1.4.6"]]
+  :dependencies [[me.raynes/fs "1.4.6"]
+                 [com.taoensso/timbre "3.4.0"]]
   :eval-in-leiningen true)

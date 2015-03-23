@@ -1,7 +1,11 @@
 (ns leiningen.runit
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
-            [me.raynes.fs :as fs]))
+            [me.raynes.fs :as fs]
+            [taoensso.timbre :as timbre]))
+
+(timbre/refer-timbre)
+(timbre/set-level! :debug)
 
 (defn sanitize [key]
   (-> key
@@ -62,12 +66,12 @@
                        (:name project))
         service [(:service-root (:runit project)) service-name]
         runit ["/etc/service" service-name]
-        app-temp (conj (seq app) (:target-path project))
+        target-path (conj (seq app) (:target-path project))
         service-temp (conj (seq service) (:target-path project))]
     {:app (assemble-path app)
      :service (assemble-path service)
-     :app-temp (assemble-path app-temp)
-     :service-temp (assemble-path service-temp)
+     :target-path (assemble-path target-path)
+     :service-path (assemble-path service-path)
      :runit (assemble-path runit)}))
 
 (def paths (memoize compute-paths))
@@ -91,7 +95,7 @@
     (leiningen.core.main/warn "Runit configuration map not found. Please refer to README for details."))
   (let [paths (paths project)
         jar-name (str/join "-" [(:name project) (:version project) "standalone.jar"])]
-    (write-app (:app-temp paths) (:env project))
-    (write-service (:app paths) (:service-temp paths) jar-name)
+    (spy :debug (write-app (:target-path paths) (:env project)))
+    (spy :debug (write-service (:app paths) (:service-path paths) jar-name))
     (write-commit project jar-name)
     (leiningen.core.main/info "All done. You can now run commit.sh in target directory.")))
